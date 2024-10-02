@@ -1,0 +1,36 @@
+name: Validate Salesforce Components
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16'  # Use the appropriate Node.js version
+
+      - name: Install Salesforce CLI
+        run: npm install -g sfdx-cli
+
+      - name: Authenticate to Salesforce
+        env:
+          SFDX_URL: ${{ secrets.SFDX_URL }}  # Your Salesforce auth URL stored as a secret
+        run: |
+          echo $SFDX_URL > sfdx_url.txt
+          sfdx auth:sfdxurl:store --sfdxurlfile sfdx_url.txt --setdefaultdevhubusername
+
+      - name: Validate Metadata
+        run: |
+          sfdx force:source:validate -p force-app/main/default -u <your-org-alias>
